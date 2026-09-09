@@ -14,7 +14,12 @@ never sit idle in the foreground.
 
 - **queued** — the decision is reversible and you can safely proceed on a sensible
   default. The tool returns the default immediately (`answered_by: "default"`);
-  proceed with it. The human ratifies or overrides later.
+  proceed with it. Then ALSO arm the background await from section 3 step 2 on the
+  decision_id (`run_in_background: true`) — the human may ratify your default or
+  OVERRIDE it, and the wake is how you find out. If the delivered answer differs
+  from the default you proceeded on, adapt your work to the human's choice at the
+  next sensible point and say you did. At each stage boundary, if any queued
+  decision is still unanswered, carry on — the default stands until told otherwise.
 - **blocking** — you genuinely cannot proceed without the answer. Use sparingly.
 
 Never rely on a default for `reversibility: "hard_to_reverse"` — those must be

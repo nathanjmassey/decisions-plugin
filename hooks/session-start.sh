@@ -24,7 +24,10 @@ consult it when routing a decision.
 Essentials:
 - `request_decision` returns immediately with a decision_id; never sit idle after it.
 - `mode: "queued"` + safe default for reversible calls: proceed with the returned
-  default now; the human ratifies later.
+  default now, AND arm the same background await on it (see skill) — the human may
+  ratify or OVERRIDE later. When the wake delivers an answer that differs from the
+  default you proceeded on, adapt to the human's choice at the next sensible point
+  and say so.
 - `mode: "blocking"`: do unblocked work first, then park a background wait (see
   skill), and END YOUR TURN by restating the question with its numbered options in
   your final message so the human can also answer right here in the session.
