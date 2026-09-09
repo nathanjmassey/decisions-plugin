@@ -11,6 +11,13 @@ Routes Claude Code's questions to a human through the [Decisions Hub](https://gi
 | `routing-decisions` skill | The full playbook: modes, brief quality, the background sleep/wake wait |
 | AskUserQuestion guard | PreToolUse hook that steers questions to the hub when it is live; fails open when it is not |
 
+## How a routed decision behaves
+
+- `request_decision` returns instantly; the agent keeps working on anything not blocked on the answer.
+- When only the answer remains, the agent arms a background long-poll on the hub's `/await` endpoint and ends its turn, restating the question in chat — the session sleeps at zero token cost.
+- **Dual-channel:** answer in the Decisions app (the background task completes and wakes the session) or reply in the chat (the agent records it via `resolve_decision`, clearing the app card). First answer wins.
+- **Queued mode:** the agent proceeds on a safe default immediately and still arms the await — if the human later overrides the default in the app, the wake delivers the override and the agent adapts.
+
 ## Install
 
 ```
