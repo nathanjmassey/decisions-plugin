@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "decisions": {
+      "type": "http",
+      "url": "${DECISIONS_HUB_URL:-http://127.0.0.1:5808/mcp}"
+    }
+  }
+}

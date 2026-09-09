@@ -1,0 +1,13 @@
+{
+  "name": "decisions-marketplace",
+  "owner": {
+    "name": "Nathan Massey"
+  },
+  "plugins": [
+    {
+      "name": "decisions",
+      "source": "./",
+      "description": "Route decisions to a human via the Decisions Hub. Bundles the hub MCP server, session routing guidance, a decision-routing skill, and an AskUserQuestion guard that falls back gracefully when the hub is unreachable."
+    }
+  ]
+}
