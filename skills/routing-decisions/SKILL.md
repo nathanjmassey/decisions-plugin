@@ -36,9 +36,10 @@ Call `request_decision` with ALL of:
 
 The tool ALWAYS returns immediately with a `decision_id`. It never waits.
 
-## 3. Blocking mode: the sleep/wake wait
+## 3. Blocking mode: the dual-channel sleep/wake wait
 
-After `request_decision`:
+The human may be watching this session, or away from it — serve both. After
+`request_decision`:
 
 1. Do any work NOT blocked on the answer first.
 2. When only the answer remains, run this with the Bash tool and
@@ -49,10 +50,20 @@ After `request_decision`:
    curl -s --max-time 3700 "http://127.0.0.1:5808/api/decisions/<decision_id>/await?timeout_seconds=3600"
    ```
 
-3. End your turn, telling the human a decision is pending in their app.
-4. The background task completes when they answer and wakes you with
-   `{"state": "answered", "answer": {"answer": "...", "answered_by": "user"}}`.
-   If it returns `state: "pending"` (1h elapsed), re-arm the same background curl.
+3. End your turn by RESTATING the question with its numbered options (and your
+   recommendation) in your final message, noting they can answer here or in the
+   Decisions app. This message is the in-session answer surface — make it
+   self-contained.
+4. Whichever channel answers first wins:
+   - **App**: the background task completes and wakes you with
+     `{"state": "answered", "answer": {..., "answered_via": "app"}}`. Proceed.
+   - **In-session**: the human replies in chat. Immediately call
+     `resolve_decision` with the decision_id and their `option_label` (or
+     `free_text` for an answer outside the options) — this clears the pending
+     card from the app so the queue never holds stale decisions. If it returns
+     `already_answered`, they beat you to it in the app: respect that standing
+     answer, not the chat reply, and say so.
+   If the background curl returns `state: "pending"` (1h elapsed), re-arm it.
 
 If your harness has no background shell, call the `await_decision` MCP tool with a
 long `timeout_seconds` (up to 21600) instead and let the harness hold or background

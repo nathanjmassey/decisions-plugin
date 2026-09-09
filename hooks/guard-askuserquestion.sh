@@ -24,11 +24,12 @@ print(json.dumps({
         "permissionDecisionReason": (
             "The Decisions Hub is live on this machine — route this question through "
             "the `decisions` MCP server's request_decision tool instead of "
-            "AskUserQuestion, then follow the routing-decisions skill (blocking mode: "
-            "park a background wait and end your turn; queued mode: proceed with the "
-            "default). The human will answer in the Decisions app. If this question "
-            "is genuinely mid-conversation and interactive (the human is actively "
-            "typing with you right now), you may re-ask in plain text instead."
+            "AskUserQuestion, then follow the routing-decisions skill: park a "
+            "background wait, and end your turn restating the question with numbered "
+            "options so the human can answer here in the session OR in the Decisions "
+            "app (dual-channel). If they answer in-session, call resolve_decision to "
+            "clear the app card; if it returns already_answered, the app answer "
+            "stands."
         ),
     }
 }))
