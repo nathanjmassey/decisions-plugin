@@ -1,0 +1,112 @@
+#!/usr/bin/env python3
+"""SessionStart context builder for the Decisions plugin.
+
+Reads the hook input (session_id, cwd) from stdin, queries the hub for
+unacknowledged answers and the project's decision ledger, and emits the
+routing guidance with this session's identity and sentinel command baked in.
+"""
+import json
+import sys
+import urllib.parse
+import urllib.request
+
+hub = sys.argv[1]
+sentinel = sys.argv[2]
+
+try:
+    hook_input = json.load(sys.stdin)
+except Exception:
+    hook_input = {}
+
+session_tag = hook_input.get("session_id") or "unknown-session"
+cwd = hook_input.get("cwd") or ""
+
+
+def fetch(path: str, params: dict) -> list:
+    try:
+        qs = urllib.parse.urlencode(params)
+        with urllib.request.urlopen(f"{hub}{path}?{qs}", timeout=2) as r:
+            return json.load(r)
+    except Exception:
+        return []
+
+
+def answer_text(d: dict) -> str:
+    ans = d.get("answer") or {}
+    label = ans.get("answer")
+    free = ans.get("free_text")
+    if label == "__free_text__" and free:
+        return free
+    if label and free:
+        return f"{label} (note: {free})"
+    return label or "(unknown)"
+
+
+unacked = fetch("/api/decisions/unacknowledged", {"project": cwd}) if cwd else []
+ledger = fetch("/api/decisions/ledger", {"project": cwd}) if cwd else []
+# Ledger minus anything already surfaced as unacknowledged
+unacked_ids = {d.get("id") for d in unacked}
+ledger = [d for d in ledger if d.get("id") not in unacked_ids][:10]
+
+sentinel_cmd = f'bash "{sentinel}" "{hub}" "{session_tag}" "{cwd}"'
+
+context = f"""## Decision routing (Decisions Hub — live at {hub})
+
+When you need a human decision, approval, or choice, use the `decisions` MCP server's
+`request_decision` tool — the human answers in their Decisions app OR by replying in
+this session (dual-channel). The `routing-decisions` skill has the full playbook —
+consult it when routing a decision.
+
+Your session identity for the hub:
+- On EVERY `request_decision`, include `source: {{"agent": "Claude Code", "session_tag": "{session_tag}", "project": "{cwd}"}}`.
+- After filing your first decision, arm the SENTINEL (one per session) via the Bash
+  tool with `run_in_background: true`:
+  `{sentinel_cmd}`
+  It sleeps until the human answers any of this session's decisions in the app, then
+  completes — waking you. When woken: fetch each listed decision with
+  `decision_status` (this acknowledges it), apply the answer, and RE-ARM the
+  sentinel with the same command if any of your decisions are still pending or you
+  file more. Do not run per-decision polls or re-arm loops — the sentinel is the
+  wake channel for everything, including queued-mode overrides.
+
+Essentials:
+- `request_decision` returns immediately with a decision_id; never sit idle after it.
+- `mode: "queued"` + safe default for reversible calls: proceed with the returned
+  default now; if the human later overrides it in the app, the sentinel wakes you —
+  adapt to their choice at the next sensible point and say so.
+- `mode: "blocking"`: do unblocked work first, ensure the sentinel is armed, and END
+  YOUR TURN by restating the question with its numbered options in your final
+  message so the human can also answer right here in the session.
+- If the human answers IN-SESSION, immediately call `resolve_decision` with the
+  decision_id and their choice so the app card clears. If it returns
+  already_answered, they answered in the app first — respect that answer.
+- Never rely on defaults for `reversibility: "hard_to_reverse"` decisions.
+- Always fill recommendation.option, recommendation.reasoning, context.goal,
+  context.progress, context.trigger — plain English, consequences not implementation."""
+
+if unacked:
+    lines = "\n".join(
+        f'- {d.get("id")}: "{d.get("question")}" -> {answer_text(d)}' for d in unacked
+    )
+    context += f"""
+
+## Decisions answered while no session was listening — act on these NOW
+{lines}
+Apply each answer to the relevant work (or note it for when you touch that area),
+and acknowledge each by calling `decision_status` with its id."""
+
+if ledger:
+    lines = "\n".join(
+        f'- "{d.get("question")}" -> {answer_text(d)}' for d in ledger
+    )
+    context += f"""
+
+## Decision ledger for this project (already applied — context only)
+{lines}"""
+
+print(json.dumps({
+    "hookSpecificOutput": {
+        "hookEventName": "SessionStart",
+        "additionalContext": context,
+    }
+}))

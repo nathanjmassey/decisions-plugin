@@ -14,12 +14,12 @@ never sit idle in the foreground.
 
 - **queued** — the decision is reversible and you can safely proceed on a sensible
   default. The tool returns the default immediately (`answered_by: "default"`);
-  proceed with it. Then ALSO arm the background await from section 3 step 2 on the
-  decision_id (`run_in_background: true`) — the human may ratify your default or
-  OVERRIDE it, and the wake is how you find out. If the delivered answer differs
-  from the default you proceeded on, adapt your work to the human's choice at the
-  next sensible point and say you did. At each stage boundary, if any queued
-  decision is still unanswered, carry on — the default stands until told otherwise.
+  proceed with it. Make sure the session sentinel is armed (section 3) — the human
+  may ratify your default or OVERRIDE it in the app, and the sentinel wake is how
+  you find out. If a delivered answer differs from the default you proceeded on,
+  adapt your work to the human's choice at the next sensible point and say you did.
+  At each stage boundary, if any queued decision is still unanswered, carry on —
+  the default stands until told otherwise.
 - **blocking** — you genuinely cannot proceed without the answer. Use sparingly.
 
 Never rely on a default for `reversibility: "hard_to_reverse"` — those must be
@@ -38,42 +38,47 @@ Call `request_decision` with ALL of:
   from now with zero session context.
 - `mode`, `reversibility`, `urgency` (`now` / `soon` / `whenever`).
 - For queued mode: `default.option` (and optionally `default.apply_at`, epoch ms).
+- `source` with `agent`, `session_tag` (your session id — given in your session
+  context), and `project` (your working directory). This is what routes wakes and
+  reconciliation back to you; never omit it.
 
 The tool ALWAYS returns immediately with a `decision_id`. It never waits.
 
-## 3. Blocking mode: the dual-channel sleep/wake wait
+## 3. The sentinel: one wake channel for the whole session
 
-The human may be watching this session, or away from it — serve both. After
-`request_decision`:
+The human may be watching this session, or away from it — serve both. The wake
+mechanism is a single SENTINEL background task per session (not per decision):
+your session context gives the exact command (the plugin's
+`scripts/decisions-sentinel.sh` with hub URL, your session_tag, and project).
 
-1. Do any work NOT blocked on the answer first.
-2. When only the answer remains, run this with the Bash tool and
-   `run_in_background: true` (substitute the real decision_id; hub base URL is
-   `$DECISIONS_HUB_URL` minus the `/mcp` suffix, default `http://127.0.0.1:5808`):
-
-   ```bash
-   curl -s --max-time 3700 "http://127.0.0.1:5808/api/decisions/<decision_id>/await?timeout_seconds=3600"
-   ```
-
-3. End your turn by RESTATING the question with its numbered options (and your
+1. After filing your FIRST decision, arm the sentinel via the Bash tool with
+   `run_in_background: true`. It long-polls the hub's session wake endpoint,
+   silently reconnecting on timeouts and errors, and only completes when the
+   human answers one of this session's decisions in the app — which wakes you.
+2. For **blocking** decisions: do any work NOT blocked on the answer first, then
+   END YOUR TURN by restating the question with its numbered options (and your
    recommendation) in your final message, noting they can answer here or in the
    Decisions app. This message is the in-session answer surface — make it
-   self-contained.
-4. Whichever channel answers first wins:
-   - **App**: the background task completes and wakes you with
-     `{"state": "answered", "answer": {..., "answered_via": "app"}}`. Proceed.
+   self-contained. Your session now sleeps at zero cost until a channel fires.
+3. Whichever channel answers first wins:
+   - **App**: the sentinel completes, printing the answered decision ids. Call
+     `decision_status` for each (this ACKNOWLEDGES it — stops redelivery), apply
+     the answer, then RE-ARM the sentinel with the same command if any of your
+     decisions are still pending — or leave it re-armed anyway; it costs nothing
+     and catches late queued-mode overrides.
    - **In-session**: the human replies in chat. Immediately call
      `resolve_decision` with the decision_id and their `option_label` (or
-     `free_text` for an answer outside the options) — this clears the pending
-     card from the app so the queue never holds stale decisions. If it returns
-     `already_answered`, they beat you to it in the app: respect that standing
-     answer, not the chat reply, and say so.
-   If the background curl returns `state: "pending"` (1h elapsed), re-arm it.
+     `free_text`) — this clears the app card and does NOT trigger a sentinel
+     wake. If it returns `already_answered`, they beat you to it in the app:
+     respect that standing answer, not the chat reply, and say so.
+4. The sentinel's wake output includes answers you missed while disconnected
+   (at-least-once delivery) — the hub redelivers any unacknowledged answer, so a
+   crashed or expired wait never loses a decision.
 
 If your harness has no background shell, call the `await_decision` MCP tool with a
-long `timeout_seconds` (up to 21600) instead and let the harness hold or background
-it. `await_decision` with `timeout_seconds: 0`, or `decision_status`, gives an
-instant non-waiting check between other work.
+long `timeout_seconds` (up to 21600) on the specific decision instead and let the
+harness hold or background it. `await_decision` with `timeout_seconds: 0`, or
+`decision_status`, gives an instant non-waiting check between other work.
 
 ## 4. Small autonomous decisions
 
