@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash /Users/nathanmassey/.codex/decisions-hooks/session-start.sh",
+            "statusMessage": "Decisions Hub: session registration + reconcile",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  }
+}
