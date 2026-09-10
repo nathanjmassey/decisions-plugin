@@ -27,5 +27,26 @@ find_tty() {
   done
 }
 SESSION_TTY="$(find_tty $$)"
+
+# Liveness heartbeater: find the actual claude process up the tree and spawn
+# a detached 60s pinger that also posts phase=ended when the process dies.
+# Only spawn when we positively identify claude — watching the wrong pid
+# would post a false "ended" the moment the hook's wrapper exits.
+find_claude_pid() {
+  local pid="$PPID" cmd
+  for _ in 1 2 3 4; do
+    [ -z "$pid" ] || [ "$pid" = "0" ] && break
+    cmd="$(ps -o comm= -p "$pid" 2>/dev/null)"
+    case "$cmd" in *claude*) echo "$pid"; return;; esac
+    pid="$(ps -o ppid= -p "$pid" 2>/dev/null | tr -d ' ')"
+  done
+}
+SESSION_ID="$(echo "$INPUT" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("session_id",""))' 2>/dev/null)"
+CLAUDE_PID="$(find_claude_pid)"
+if [ -n "$SESSION_ID" ] && [ -n "$CLAUDE_PID" ]; then
+  nohup bash "${CLAUDE_PLUGIN_ROOT}/scripts/decisions-heartbeat.sh" \
+    "$HUB_URL" "$SESSION_ID" "$CLAUDE_PID" > /dev/null 2>&1 &
+fi
+
 echo "$INPUT" | DECISIONS_TTY="$SESSION_TTY" DECISIONS_TERM_APP="${TERM_PROGRAM:-}" \
   python3 "${CLAUDE_PLUGIN_ROOT}/hooks/session_start.py" "$HUB_URL" "$SENTINEL"
