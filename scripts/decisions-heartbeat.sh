@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 # Liveness heartbeater: decisions-heartbeat.sh <hub> <session_tag> <watch_pid>
-# Spawned (detached) by the SessionStart hook. Pings the hub every 60s while
-# the watched agent process is alive; posts phase=ended when it disappears —
-# crash-proof death detection that does not rely on SessionEnd firing.
+# Spawned (detached) by the SessionStart hook. Checks the watched agent
+# process every 2s (kill -0 is a syscall — free) so death is reported as
+# phase=ended within seconds, crash-proof and independent of SessionEnd.
+# Posts a heartbeat register every 10th check (~20s) to keep last_seen fresh
+# without network chatter.
 
 HUB="$1"
 TAG="$2"
@@ -17,10 +19,14 @@ if [ -f "$PIDFILE" ] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null; then
 fi
 echo $$ > "$PIDFILE"
 
+TICK=0
 while kill -0 "$WATCH_PID" 2>/dev/null; do
-  curl -s -m 2 -X POST "${HUB}/api/sessions/${TAG}/register" \
-    -H "Content-Type: application/json" -d '{}' > /dev/null 2>&1
-  sleep 60
+  if [ $((TICK % 10)) -eq 0 ]; then
+    curl -s -m 2 -X POST "${HUB}/api/sessions/${TAG}/register" \
+      -H "Content-Type: application/json" -d '{}' > /dev/null 2>&1
+  fi
+  TICK=$((TICK + 1))
+  sleep 2
 done
 
 curl -s -m 2 -X POST "${HUB}/api/sessions/${TAG}/register" \
