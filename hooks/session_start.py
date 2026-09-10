@@ -115,8 +115,10 @@ Essentials:
   decision_id and their choice so the app card clears. If it returns
   already_answered, they answered in the app first — respect that answer.
 - Never rely on defaults for `reversibility: "hard_to_reverse"` decisions.
-- Always fill recommendation.option, recommendation.reasoning, context.goal,
-  context.progress, context.trigger — plain English, consequences not implementation.
+- Always fill context.title (a short human-readable topic for this session's work,
+  e.g. "Focus timer" — it becomes the card headline in the app; NEVER omit it),
+  recommendation.option, recommendation.reasoning, context.goal, context.progress,
+  context.trigger — plain English, consequences not implementation.
 - Grade `urgency` by consideration needed, not time: now = consider carefully,
   soon = think over, whenever = quick confirm.
 
