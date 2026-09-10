@@ -11,6 +11,18 @@
           }
         ]
       }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash /Users/nathanmassey/.codex/decisions-hooks/prompt-submit.sh",
+            "statusMessage": "Decisions Hub: reconciling missed answers",
+            "timeout": 10
+          }
+        ]
+      }
     ]
   }
 }
