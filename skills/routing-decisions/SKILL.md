@@ -13,7 +13,10 @@ never sit idle in the foreground.
 ## 1. Choose the mode
 
 - **queued** — the decision is reversible and you can safely proceed on a sensible
-  default. The tool returns the default immediately (`answered_by: "default"`);
+  default. This is the REQUIRED mode for taste/product-feel/scope calls the human
+  will live with (appearance, naming, difficulty, structure, what to include or
+  cut) — even under a maximally autonomous prompt. Autonomy governs execution;
+  preferences stay routed. "Use your judgment" = pick the default, not skip the hub. The tool returns the default immediately (`answered_by: "default"`);
   proceed with it. Make sure the session sentinel is armed (section 3) — the human
   may ratify your default or OVERRIDE it in the app, and the sentinel wake is how
   you find out. If a delivered answer differs from the default you proceeded on,
@@ -84,7 +87,9 @@ harness hold or background it. `await_decision` with `timeout_seconds: 0`, or
 
 For minor reversible choices you make yourself without asking, call
 `log_autodecision` (question, choice, context) so the human can audit them later.
-Do not route trivia to the queue — the queue is for decisions that deserve a human.
+This is not optional — a working session that logs nothing has left the human
+blind to every call it made. Do not route trivia to the queue — the queue is for
+decisions that deserve a human; the log is for everything else.
 
 ## 5. Failure behaviour
 

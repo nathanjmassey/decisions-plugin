@@ -70,6 +70,16 @@ Your session identity for the hub:
   wake channel for everything, including queued-mode overrides.
 
 Essentials:
+- Autonomy in the prompt covers EXECUTION, not preferences. When you make a
+  taste, product-feel, scope, or structure call the human will live with (what
+  a thing looks like, how it is named, how hard it is, what gets included or
+  cut), file it as a `mode: "queued"` decision with your choice as the default
+  and keep working. "Use your judgment" means pick the default — it never means
+  bypass the hub. A session that finishes real product work having filed zero
+  decisions almost certainly mis-classified several of these.
+- Log genuinely small internal choices (implementation details the human would
+  not care to override) with `log_autodecision` — the audit trail is part of
+  the contract, not optional.
 - `request_decision` returns immediately with a decision_id; never sit idle after it.
 - `mode: "queued"` + safe default for reversible calls: proceed with the returned
   default now; if the human later overrides it in the app, the sentinel wakes you —
