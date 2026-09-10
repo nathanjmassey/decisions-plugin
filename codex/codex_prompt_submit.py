@@ -25,6 +25,18 @@ if session_tag and not str(session_tag).startswith("codex"):
 cwd = hook_input.get("cwd") or os.environ.get("PWD") or ""
 
 
+# Phase heartbeat: a user prompt means the agent is about to work.
+try:
+    _payload = json.dumps({"phase": "working"}).encode()
+    _req = urllib.request.Request(
+        f"{hub}/api/sessions/{urllib.parse.quote(str(session_tag))}/register",
+        data=_payload, headers={"Content-Type": "application/json"}, method="POST",
+    )
+    urllib.request.urlopen(_req, timeout=2).read()
+except Exception:
+    pass
+
+
 def fetch(params: dict) -> list:
     try:
         qs = urllib.parse.urlencode(params)
