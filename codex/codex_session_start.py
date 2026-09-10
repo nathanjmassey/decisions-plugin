@@ -72,6 +72,14 @@ def answer_text(d: dict) -> str:
     ans = d.get("answer") or {}
     label = ans.get("answer")
     free = ans.get("free_text")
+    steps = ans.get("selected_steps") or []
+    if d.get("kind") == "review":
+        parts = [f"verdict: {label}"]
+        if steps:
+            parts.append("steps: " + "; ".join(steps))
+        if free:
+            parts.append(free)
+        return " — ".join(parts)
     if label == "__free_text__" and free:
         return free
     if label and free:
@@ -125,7 +133,20 @@ Waiting (you cannot background tool calls):
    with their choice (clears the app card; `already_answered` means the app won
    — respect that answer).
 5. Before finishing a work phase, `decision_status` each queued decision you
-   proceeded on; if the human overrode your default, adapt and say so."""
+   proceeded on; if the human overrode your default, adapt and say so.
+
+Completion reviews:
+- When you FINISH a body of work that produced a deliverable (feature, artefact,
+  PR, document), file `request_review`: summary, original_ask, deliverables
+  (label + ref the human can open), caveats, and 2-3 proposed next_steps. Same
+  `source` fields as decisions. The review card IS your handover — do not just
+  stop silently.
+- You cannot be woken while idle, so after filing either hold the turn with
+  `await_decision` on the review_id, or end the turn — the verdict reaches you
+  on your next prompt via the reconcile hook. Verdicts: `accept` = work
+  ratified, wrap up; `feedback` = apply the corrections in free_text, then file
+  a fresh request_review; `next_steps` = continue with the selected_steps (plus
+  any free_text direction)."""
 
 if unacked:
     lines = "\n".join(

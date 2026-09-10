@@ -38,6 +38,14 @@ def answer_text(d: dict) -> str:
     ans = d.get("answer") or {}
     label = ans.get("answer")
     free = ans.get("free_text")
+    steps = ans.get("selected_steps") or []
+    if d.get("kind") == "review":
+        parts = [f"verdict: {label}"]
+        if steps:
+            parts.append("steps: " + "; ".join(steps))
+        if free:
+            parts.append(free)
+        return " — ".join(parts)
     if label == "__free_text__" and free:
         return free
     if label and free:

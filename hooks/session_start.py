@@ -35,6 +35,14 @@ def answer_text(d: dict) -> str:
     ans = d.get("answer") or {}
     label = ans.get("answer")
     free = ans.get("free_text")
+    steps = ans.get("selected_steps") or []
+    if d.get("kind") == "review":
+        parts = [f"verdict: {label}"]
+        if steps:
+            parts.append("steps: " + "; ".join(steps))
+        if free:
+            parts.append(free)
+        return " — ".join(parts)
     if label == "__free_text__" and free:
         return free
     if label and free:
@@ -110,7 +118,18 @@ Essentials:
 - Always fill recommendation.option, recommendation.reasoning, context.goal,
   context.progress, context.trigger — plain English, consequences not implementation.
 - Grade `urgency` by consideration needed, not time: now = consider carefully,
-  soon = think over, whenever = quick confirm."""
+  soon = think over, whenever = quick confirm.
+
+Completion reviews:
+- When you FINISH a body of work that produced a deliverable (feature, artefact,
+  PR, document), file `request_review`: summary, original_ask, deliverables
+  (label + ref the human can open), caveats, and 2-3 proposed next_steps. Same
+  `source` fields as decisions. Then arm the sentinel and end your turn — the
+  review card IS your handover; do not just stop silently.
+- The verdict wakes you like a decision answer: `accept` = work ratified, wrap
+  up and finish; `feedback` = apply the corrections in free_text, then file a
+  fresh request_review; `next_steps` = continue with the selected_steps (plus
+  any free_text direction)."""
 
 if unacked:
     lines = "\n".join(

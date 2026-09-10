@@ -94,7 +94,28 @@ This is not optional — a working session that logs nothing has left the human
 blind to every call it made. Do not route trivia to the queue — the queue is for
 decisions that deserve a human; the log is for everything else.
 
-## 5. Failure behaviour
+## 5. Completion reviews — finished work is a routable item too
+
+When you finish a body of work that produced a deliverable (feature, artefact,
+PR, document), file `request_review` instead of just stopping:
+
+- `summary` — one line on what was built (becomes the card headline)
+- `original_ask` — the request being fulfilled, one line
+- `deliverables` — `[{label, ref}]` the human can open (URL, artefact filename, PR link, path)
+- `caveats` — assumptions made, scope skipped, known gaps
+- `next_steps` — 2-3 proposed follow-ups the human can tick to continue
+- same `source` fields as decisions
+
+Then arm the sentinel and end your turn — the review card IS your handover.
+The verdict arrives like a decision answer:
+
+- `accept` — work ratified. Wrap up and finish; you are released.
+- `feedback` — apply the corrections in `free_text`, then file a fresh
+  `request_review` for the revised work.
+- `next_steps` — continue with the `selected_steps` (plus any `free_text`
+  direction), and file a new review when that work completes.
+
+## 6. Failure behaviour
 
 If the decisions server is unreachable, fall back to your native behaviour
 (AskUserQuestion / asking in-conversation). The hub is an enhancement layer, never a
