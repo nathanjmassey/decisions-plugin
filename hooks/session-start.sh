@@ -15,7 +15,17 @@ INPUT="$(cat)"
 SENTINEL="${CLAUDE_PLUGIN_ROOT}/scripts/decisions-sentinel.sh"
 # Controlling terminal + terminal app, so the Decisions app can bring this
 # session's window forward. ps TT works even though hook stdin is a pipe.
-SESSION_TTY="$(ps -o tty= -p $$ | tr -d ' ')"
-[ "$SESSION_TTY" = "??" ] && SESSION_TTY=""
+# Newer CC builds run hooks without a controlling tty — walk up the process
+# tree (hook -> parent -> claude) until one appears.
+find_tty() {
+  local pid="$1" t
+  for _ in 1 2 3; do
+    [ -z "$pid" ] && break
+    t="$(ps -o tty= -p "$pid" 2>/dev/null | tr -d ' ')"
+    if [ -n "$t" ] && [ "$t" != "??" ]; then echo "$t"; return; fi
+    pid="$(ps -o ppid= -p "$pid" 2>/dev/null | tr -d ' ')"
+  done
+}
+SESSION_TTY="$(find_tty $$)"
 echo "$INPUT" | DECISIONS_TTY="$SESSION_TTY" DECISIONS_TERM_APP="${TERM_PROGRAM:-}" \
   python3 "${CLAUDE_PLUGIN_ROOT}/hooks/session_start.py" "$HUB_URL" "$SENTINEL"
