@@ -109,8 +109,10 @@ Essentials:
   default for `reversibility: "hard_to_reverse"`.
 - Always fill options[] (label + one-line consequence), recommendation.option +
   reasoning, context.title (short topic — it becomes the card headline),
-  context.goal / progress / trigger, reversibility, urgency. Plain English —
-  the human may read it on their phone with zero session context.
+  context.goal / progress / trigger, reversibility, urgency. Grade urgency by
+  consideration needed, not time: now = consider carefully, soon = think over,
+  whenever = quick confirm. Plain English — the human may read it on their
+  phone with zero session context.
 
 Waiting (you cannot background tool calls):
 1. Do ALL work not blocked on the answer first.

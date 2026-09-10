@@ -108,7 +108,9 @@ Essentials:
   already_answered, they answered in the app first — respect that answer.
 - Never rely on defaults for `reversibility: "hard_to_reverse"` decisions.
 - Always fill recommendation.option, recommendation.reasoning, context.goal,
-  context.progress, context.trigger — plain English, consequences not implementation."""
+  context.progress, context.trigger — plain English, consequences not implementation.
+- Grade `urgency` by consideration needed, not time: now = consider carefully,
+  soon = think over, whenever = quick confirm."""
 
 if unacked:
     lines = "\n".join(

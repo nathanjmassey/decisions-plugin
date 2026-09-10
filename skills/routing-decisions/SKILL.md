@@ -39,7 +39,10 @@ Call `request_decision` with ALL of:
 - `context.title`, `context.goal`, `context.progress`, `context.trigger` — plain
   English, consequences not implementation. The human may be on their phone hours
   from now with zero session context.
-- `mode`, `reversibility`, `urgency` (`now` / `soon` / `whenever`).
+- `mode`, `reversibility`, `urgency` (`now` / `soon` / `whenever`) — urgency grades how much CONSIDERATION the human should give, not time
+pressure: `now` = consider carefully (major forks, costly to revisit),
+`soon` = think over (real choice, moderate stakes), `whenever` = quick
+confirm (a nod suffices).
 - For queued mode: `default.option` (and optionally `default.apply_at`, epoch ms).
 - `source` with `agent`, `session_tag` (your session id — given in your session
   context), and `project` (your working directory). This is what routes wakes and
