@@ -27,6 +27,8 @@ cwd = hook_input.get("cwd") or os.environ.get("PWD") or ""
 
 # Phase heartbeat: a user prompt means the agent is about to work.
 try:
+    if not session_tag:
+        raise ValueError("no session tag")
     _payload = json.dumps({"phase": "working"}).encode()
     _req = urllib.request.Request(
         f"{hub}/api/sessions/{urllib.parse.quote(str(session_tag))}/register",
