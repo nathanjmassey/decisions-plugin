@@ -137,6 +137,12 @@ Waiting (you cannot background tool calls):
 5. Before finishing a work phase, `decision_status` each queued decision you
    proceeded on; if the human overrode your default, adapt and say so.
 
+Checkpoints:
+- NEVER pause silently for the human's go-ahead. A check-in or phase gate is a
+  BLOCKING decision: file it with options [{{"label": "Continue"}}] plus any
+  real alternatives, then hold the turn with await_decision — the human's tap
+  in the app resumes you.
+
 Completion reviews:
 - When you FINISH a body of work that produced a deliverable (feature, artefact,
   PR, document), file `request_review`: summary, original_ask, deliverables

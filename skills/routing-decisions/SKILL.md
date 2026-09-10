@@ -94,7 +94,15 @@ This is not optional — a working session that logs nothing has left the human
 blind to every call it made. Do not route trivia to the queue — the queue is for
 decisions that deserve a human; the log is for everything else.
 
-## 5. Completion reviews — finished work is a routable item too
+## 5. Checkpoints — never wait silently
+
+Ending a turn to wait for the human's go-ahead (a mid-work check-in, a phase
+gate, "say continue") is a blocking decision, not a chat pause. File it with
+`options: [{"label": "Continue"}]` plus any genuine alternatives, arm the
+sentinel, end the turn. The human unblocks you with one tap in the app; they
+should never have to find your terminal just to say "go".
+
+## 6. Completion reviews — finished work is a routable item too
 
 When you finish a body of work that produced a deliverable (feature, artefact,
 PR, document), file `request_review` instead of just stopping:
@@ -115,7 +123,7 @@ The verdict arrives like a decision answer:
 - `next_steps` — continue with the `selected_steps` (plus any `free_text`
   direction), and file a new review when that work completes.
 
-## 6. Failure behaviour
+## 7. Failure behaviour
 
 If the decisions server is unreachable, fall back to your native behaviour
 (AskUserQuestion / asking in-conversation). The hub is an enhancement layer, never a

@@ -124,6 +124,14 @@ Essentials:
 - Grade `urgency` by consideration needed, not time: now = consider carefully,
   soon = think over, whenever = quick confirm.
 
+Checkpoints:
+- NEVER end a turn silently waiting for the human's go-ahead (a check-in, a
+  phase gate, "say continue when ready"). That wait is a BLOCKING decision —
+  file it: question = what you are waiting for, options = [{{"label":
+  "Continue"}}] plus any real alternatives, mode "blocking". Arm the sentinel
+  and end your turn. The human's tap in the app wakes you — they should never
+  have to type in this chat just to unblock you.
+
 Completion reviews:
 - When you FINISH a body of work that produced a deliverable (feature, artefact,
   PR, document), file `request_review`: summary, original_ask, deliverables
