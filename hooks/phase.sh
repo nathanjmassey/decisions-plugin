@@ -13,6 +13,6 @@ SESSION_ID="$(echo "$INPUT" | python3 -c 'import json,sys; print(json.load(sys.s
 
 curl -s -m 2 -X POST "${HUB_URL}/api/sessions/${SESSION_ID}/register" \
   -H "Content-Type: application/json" \
-  -d "{\"phase\": \"${PHASE}\"}" > /dev/null 2>&1
+  -d "{\"phase\": \"${PHASE}\", \"agent\": \"Claude Code\"}" > /dev/null 2>&1
 
 exit 0

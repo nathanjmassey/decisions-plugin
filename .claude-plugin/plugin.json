@@ -1,7 +1,7 @@
 {
   "name": "decisions",
   "description": "Route decisions to a human via the Decisions Hub: request_decision MCP tooling, session steering, and an AskUserQuestion guard with graceful fallback.",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "author": {
     "name": "Nathan Massey"
   }

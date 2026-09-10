@@ -59,6 +59,7 @@ try:
         "tty": os.environ.get("DECISIONS_TTY") or None,
         "term_app": os.environ.get("DECISIONS_TERM_APP") or None,
         "phase": "running",
+        "agent": "Codex",
     }).encode()
     req = urllib.request.Request(
         f"{hub}/api/sessions/{urllib.parse.quote(str(session_tag))}/register",
