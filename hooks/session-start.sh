@@ -13,4 +13,9 @@ fi
 # Hook input (session_id, cwd) arrives on stdin — forward it to the builder.
 INPUT="$(cat)"
 SENTINEL="${CLAUDE_PLUGIN_ROOT}/scripts/decisions-sentinel.sh"
-echo "$INPUT" | python3 "${CLAUDE_PLUGIN_ROOT}/hooks/session_start.py" "$HUB_URL" "$SENTINEL"
+# Controlling terminal + terminal app, so the Decisions app can bring this
+# session's window forward. ps TT works even though hook stdin is a pipe.
+SESSION_TTY="$(ps -o tty= -p $$ | tr -d ' ')"
+[ "$SESSION_TTY" = "??" ] && SESSION_TTY=""
+echo "$INPUT" | DECISIONS_TTY="$SESSION_TTY" DECISIONS_TERM_APP="${TERM_PROGRAM:-}" \
+  python3 "${CLAUDE_PLUGIN_ROOT}/hooks/session_start.py" "$HUB_URL" "$SENTINEL"

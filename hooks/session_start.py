@@ -42,6 +42,22 @@ def answer_text(d: dict) -> str:
     return label or "(unknown)"
 
 
+# Register this session's terminal reference so the app can focus it.
+try:
+    import os
+    payload = json.dumps({
+        "project": cwd,
+        "tty": os.environ.get("DECISIONS_TTY") or None,
+        "term_app": os.environ.get("DECISIONS_TERM_APP") or None,
+    }).encode()
+    req = urllib.request.Request(
+        f"{hub}/api/sessions/{urllib.parse.quote(session_tag)}/register",
+        data=payload, headers={"Content-Type": "application/json"}, method="POST",
+    )
+    urllib.request.urlopen(req, timeout=2).read()
+except Exception:
+    pass
+
 unacked = fetch("/api/decisions/unacknowledged", {"project": cwd}) if cwd else []
 ledger = fetch("/api/decisions/ledger", {"project": cwd}) if cwd else []
 # Ledger minus anything already surfaced as unacknowledged
